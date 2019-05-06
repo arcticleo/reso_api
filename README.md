@@ -198,6 +198,12 @@ This gem should work with any RESO Web API compliant service, but these are thos
 
 If you use this gem to connect to another service or MLS, please submit a pull request with that service added in alphabetical order in this list.
 
+## Acknowledgment
+
+The inspiration for this gem and the outline and examples in this README is based on the [ListHub API][].
+
+[ListHub API]: https://developer.listhub.com/api/
+
 ## Development
 
 After checking out the repo, run `bin/setup` to install dependencies. Then, run `rake spec` to run the tests. You can also run `bin/console` for an interactive prompt that will allow you to experiment.
@@ -210,4 +216,4 @@ Bug reports and pull requests are welcome on GitHub at https://github.com/arctic
 
 ## Code of Conduct
 
-Everyone interacting in the ResoApi project’s codebases, issue trackers, chat rooms and mailing lists is expected to follow the [code of conduct](https://github.com/arcticleo/reso_api/blob/master/CODE_OF_CONDUCT.md).
+Everyone interacting in the RESO API project’s codebases, issue trackers, chat rooms and mailing lists is expected to follow the [code of conduct](https://github.com/arcticleo/reso_api/blob/master/CODE_OF_CONDUCT.md).
