@@ -97,16 +97,16 @@ You can combine expressions together with or and and to perform more complex que
 ```ruby
 client.properties(filter: "StandardStatus eq 'Active' and CustomBrokerName eq 'Doe Brokerage'")
 ```
-RESO Web API is built upon the OData standard, but only requires compliant servers to support a subset of `$filter` queries:
+RESO Web API is built on the OData standard, but only requires compliant servers to support a subset of queries:
 
-| Operator | Description            | Example                    |
-|----------|------------------------|----------------------------|
-|    eq    | Equals                 | StandardStatus eq 'Active' |
-|    ne    | Not equals             | StandardStatus ne 'Active' |
-|    ge    | Greater than or equals | ListPrice ge 100000        |
-|    gt    | Greater than           | ListPrice gt 100000        |
-|    le    | Less than or equals    | ListPrice le 100000        |
-|    lt    | Less than              | ListPrice lt 100000        |
+| Operator   | Description            | Example                      |
+|------------|------------------------|------------------------------|
+|    `eq`    | Equals                 | `StandardStatus eq 'Active'` |
+|    `ne`    | Not equals             | `StandardStatus ne 'Active'` |
+|    `ge`    | Greater than or equals | `ListPrice ge 100000`        |
+|    `gt`    | Greater than           | `ListPrice gt 100000`        |
+|    `le`    | Less than or equals    | `ListPrice le 100000`        |
+|    `lt`    | Less than              | `ListPrice lt 100000`        |
 
 #### $select
 
