@@ -38,11 +38,15 @@ You pass these three pieces of information when creating an instance of an API c
 client = RESO::API::Client.new(client_id: client_id, client_secret: client_secret, base_url: base_url)
 ```
 
-When calling API endpoints, the initialized client will automatically fetch and manage access and authentication tokens in the background.
+When calling API endpoints using the initialized client, it will automatically fetch and manage access and authentication tokens transparently in the background.
 
 ### Resources
 
-This API wrapper currently only supports the Property resource. Support for missing standard resources is planned:
+#### Supported
+
+- Property
+
+#### Planned 
 
 - Media
 - Member
@@ -50,7 +54,7 @@ This API wrapper currently only supports the Property resource. Support for miss
 
 ### Retrieving Metadata
 
-You can get the metadata for the Property resource using:
+You can fetch metadata for supported resources:
 
 ```ruby
 client.metadata
