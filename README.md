@@ -4,7 +4,7 @@ Ruby wrapper for easy interaction with a RESO Web API compliant server.
 
 This document does not documentation for the RESO Web API. More information about the RESO Web API standard can be found on [RESO][].
 
-[RESO][https://www.reso.org/reso-web-api/]
+[RESO]: https://www.reso.org/reso-web-api/
 
 ## Installation
 
@@ -38,11 +38,15 @@ You pass these three pieces of information when creating an instance of an API c
 client = RESO::API::Client.new(client_id: client_id, client_secret: client_secret, base_url: base_url)
 ```
 
-When calling API endpoints, the initialized client will automatically call and manage authentication and access tokens in the background.
+When calling API endpoints, the initialized client will automatically fetch and manage access and authentication tokens in the background.
 
 ### Resources
 
-This API wrapper currently only supports the Property resource. Support for missing resources is planned.
+This API wrapper currently only supports the Property resource. Support for missing standard resources is planned:
+
+- Media
+- Member
+- Office
 
 ### Retrieving Metadata
 
@@ -54,7 +58,7 @@ client.metadata
 
 The response will be an EDMX xml schema document that matches the [RESO Data Dictionary standard][].
 
-[RESO Data Dictionary standard](https://www.reso.org/data-dictionary/)
+[RESO Data Dictionary standard]: https://www.reso.org/data-dictionary/
 
 ### Listing Requests
 
@@ -82,15 +86,11 @@ The response will be a single listing JSON object.
 
 You can use `$filter` to send simple and complex queries to get a subset of listings depending on your particular use case.
 
-#### Filtering by a value
-
 To use `$filter`, pass it an expression in the format `FieldName operator Value`. For example, this query will return listings where the `StandardStatus` field equals (`eq`) the value `'Active'`:
 
 ```ruby
 client.properties(filter: "StandardStatus eq 'Active'")
 ```
-
-#### Filtering by multiple values
 
 You can combine expressions together with or and and to perform more complex queries.
 
@@ -98,7 +98,7 @@ You can combine expressions together with or and and to perform more complex que
 client.properties(filter: "StandardStatus eq 'Active' and CustomBrokerName eq 'Doe Brokerage'")
 ```
 
-$select
+#### $select
 
 Instead of returning all of the listing fields in the response, you can use `$select` to only return specific fields you need.
 
@@ -121,7 +121,7 @@ You can order the results by a field using `$orderby`:
 client.properties(orderby: "City desc")
 ```
 
-### Pagination, $top, and $skip
+#### Pagination, $top, and $skip
 
 The default number of results returned is 100. You can override the default limit using the `$top` parameter. The higher the number specific for `$top`, the longer the API response will take, and pay attention to that different services does enforce a cap for number of records returned.
 
@@ -135,7 +135,7 @@ client.properties(select: "ListingKey", top: 200, skip: 500)
 
 As you paginate through very large datasets, you might notice that the higher you set `$skip` the longer it takes for the API to return results. For those use cases, you should use `$skiptoken` to process very large datasets quickly.
 
-### Using $skiptoken for large datasets
+#### Using $skiptoken for large datasets
 
 `$skiptoken` can be used in combination with `$orderby` to process large datasets. To illustrate `$skiptoken`, we will use the following request to get 5 records ordered by `ListingKey`:
 
