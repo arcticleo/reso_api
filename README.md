@@ -194,7 +194,7 @@ client.properties(top: 5, orderby: "ListingKey", skiptoken: "3yd-AAABORMI-320039
 
 This gem should work with any RESO Web API compliant service, but these are those that have been confirmed.
 
-- ListHub
+- [ListHub](https://www.listhub.com)
 
 If you use this gem to connect to another service or MLS, please submit a pull request with that service added in alphabetical order in this list.
 
