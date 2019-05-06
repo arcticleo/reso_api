@@ -99,7 +99,7 @@ client.properties(filter: "StandardStatus eq 'Active'")
 You can combine expressions together with or and and to perform more complex queries.
 
 ```ruby
-client.properties(filter: "StandardStatus eq 'Active' and CustomBrokerName eq 'Doe Brokerage'")
+client.properties(filter: "StandardStatus eq 'Active' and BrokerName eq 'Doe Brokerage'")
 ```
 RESO Web API is built on the OData standard, but only requires compliant servers to support a subset of queries:
 
