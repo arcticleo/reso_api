@@ -2,7 +2,7 @@
 
 Ruby wrapper for easy interaction with a RESO Web API compliant server.
 
-This document does not documentation for the RESO Web API. More information about the RESO Web API standard can be found on [RESO][].
+This document does not documentation for the RESO Web API. More information about the RESO Web API standard can be found on [RESO][]'s website.
 
 [RESO]: https://www.reso.org/reso-web-api/
 
@@ -62,7 +62,7 @@ The response will be an EDMX xml schema document that matches the [RESO Data Dic
 
 ### Listing Requests
 
-To query for listings via the Syndication API: 
+The simplest query is simply to call `properties` on the initialized client: 
 
 ```ruby
 client.properties
@@ -97,6 +97,16 @@ You can combine expressions together with or and and to perform more complex que
 ```ruby
 client.properties(filter: "StandardStatus eq 'Active' and CustomBrokerName eq 'Doe Brokerage'")
 ```
+RESO Web API is built upon the OData standard, but only requires compliant servers to support a subset of `$filter` queries:
+
+| Operator | Description            | Example                    |
+|----------|------------------------|----------------------------|
+|    eq    | Equals                 | StandardStatus eq 'Active' |
+|    ne    | Not equals             | StandardStatus ne 'Active' |
+|    ge    | Greater than or equals | ListPrice ge 100000        |
+|    gt    | Greater than           | ListPrice gt 100000        |
+|    le    | Less than or equals    | ListPrice le 100000        |
+|    lt    | Less than              | ListPrice lt 100000        |
 
 #### $select
 
@@ -174,7 +184,7 @@ To get the next set of records, you would then use the value of the ListingKey f
 client.properties(top: 5, orderby: "ListingKey", skiptoken: "3yd-AAABORMI-3200394")
 ```
 
-$skiptoken allows you to process large datasets from the API in a sequence without sacrificing performance. The drawback is that you cannot "skip" to a random page, for that you must use the regular `$skip` parameter.
+`$skiptoken` allows you to process large datasets from the API in a sequence without sacrificing performance. The drawback is that you cannot "skip" to a random page, for that you must use the regular `$skip` parameter.
 
 ## Development
 
