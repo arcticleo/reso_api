@@ -196,7 +196,7 @@ This gem should work with any RESO Web API compliant service, but these are thos
 
 - ListHub
 
-If you use this gem to connect to another service or MLS, please submit a pull request to update the list with that service.
+If you use this gem to connect to another service or MLS, please submit a pull request with that service added in alphabetical order in this list.
 
 ## Development
 
