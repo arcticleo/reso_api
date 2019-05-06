@@ -192,7 +192,7 @@ client.properties(top: 5, orderby: "ListingKey", skiptoken: "3yd-AAABORMI-320039
 
 ## Compatibility
 
-This gem should work with any RESO Web API compliant service, but these are those that have been confirmed.
+This gem should work with any RESO Web API compliant service, but these are those that have been confirmed to work.
 
 - [ListHub](https://www.listhub.com)
 
