@@ -190,6 +190,14 @@ client.properties(top: 5, orderby: "ListingKey", skiptoken: "3yd-AAABORMI-320039
 
 `$skiptoken` allows you to process large datasets from the API in a sequence without sacrificing performance. The drawback is that you cannot "skip" to a random page, for that you must use the regular `$skip` parameter.
 
+## Compatibility
+
+This gem should work with any RESO Web API compliant service, but these are those that have been confirmed.
+
+- ListHub
+
+If you use this gem to connect to another service or MLS, please submit a pull request to update the list with that service.
+
 ## Development
 
 After checking out the repo, run `bin/setup` to install dependencies. Then, run `rake spec` to run the tests. You can also run `bin/console` for an interactive prompt that will allow you to experiment.
