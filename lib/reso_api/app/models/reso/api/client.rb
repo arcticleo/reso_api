@@ -57,7 +57,8 @@ module RESO
             "$orderby": hash[:orderby] ||= RESOURCE_KEYS[method_name],
             "$skiptoken": hash[:skiptoken],
             "$expand": hash[:expand],
-            "$count": hash[:count].to_s.presence
+            "$count": hash[:count].to_s.presence,
+            "$debug": hash[:debug]
           }.compact
           return perform_call(endpoint, params)
         end
@@ -127,6 +128,7 @@ module RESO
         if params.present?
           query = params.present? ? URI.encode_www_form(params).gsub("+", " ") : ""
           uri.query && uri.query.length > 0 ? uri.query += '&' + query : uri.query = query
+          return URI::decode(uri.request_uri) if params.dig(:$debug).present?
         end
         request = Net::HTTP::Get.new(uri.request_uri)
         request['Authorization'] = "Bearer #{oauth2_token}"

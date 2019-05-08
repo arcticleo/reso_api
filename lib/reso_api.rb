@@ -1,3 +1,4 @@
+require "active_support/all"
 require "reso_api/version"
 # require "reso_api/railtie" if defined?(Rails)
 require "reso_api/config/inflections.rb"

@@ -42,15 +42,12 @@ When calling API endpoints using the initialized client, it will automatically f
 
 ### Resources
 
-#### Supported
-
-- Property
-
-#### Planned 
+#### Supported Resources
 
 - Media
 - Member
 - Office
+- Property
 
 ### Retrieving Metadata
 
