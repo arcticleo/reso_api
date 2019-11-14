@@ -132,6 +132,14 @@ You can order the results by a field using `$orderby`:
 client.properties(orderby: "City desc")
 ```
 
+#### $expand
+
+$expand in oData is meant to join two resources together. For the Syndication API this means you can bring in photos to any property query.
+
+```ruby
+client.properties(еxpand: "Media")
+```
+
 #### Pagination, $top, and $skip
 
 The default number of results returned is 100. You can override the default limit using the `$top` parameter. The higher the number specific for `$top`, the longer the API response will take, and pay attention to that different services does enforce a cap for number of records returned.
