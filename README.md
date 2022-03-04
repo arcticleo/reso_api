@@ -140,7 +140,7 @@ client.properties(orderby: "City desc")
 $expand in oData is meant to join two resources together. For the Syndication API this means you can bring in photos to any property query.
 
 ```ruby
-client.properties(еxpand: "Media")
+client.properties(expand: "Media")
 ```
 
 #### Pagination, $top, and $skip
