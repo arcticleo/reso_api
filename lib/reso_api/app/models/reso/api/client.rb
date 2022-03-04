@@ -7,16 +7,17 @@ module RESO
       require 'json'
       require 'tmpdir'
 
-      attr_accessor :client_id, :client_secret, :base_url
+      attr_accessor :client_id, :client_secret, :auth_url, :base_url
 
       def initialize(**opts)
-        @client_id, @client_secret, @base_url = opts.values_at(:client_id, :client_secret, :base_url)
+        @client_id, @client_secret, @auth_url, @base_url = opts.values_at(:client_id, :client_secret, :auth_url, :base_url)
         validate!
       end
 
       def validate!
         raise 'Missing Client ID `client_id`' if client_id.nil?
         raise 'Missing Client Secret `client_secret`' if client_secret.nil?
+        raise 'Missing Authentication URL `auth_url`' if auth_url.nil?
         raise 'Missing API Base URL `base_url`' if base_url.nil?
       end
 
@@ -28,21 +29,21 @@ module RESO
       }
 
       DETAIL_ENDPOINTS = {
-        medium: "odata/Media",
-        member: "odata/Member",
-        office: "odata/Office",
-        property: "odata/Property"
+        medium: "/Media",
+        member: "/Member",
+        office: "/Office",
+        property: "/Property"
       }
 
       FILTERABLE_ENDPOINTS = {
-        media: "odata/Media",
-        members: "odata/Member",
-        offices: "odata/Office",
-        properties: "odata/Property"
+        media: "/Media",
+        members: "/Member",
+        offices: "/Office",
+        properties: "/Property"
       }
 
       PASSTHROUGH_ENDPOINTS = {
-        metadata: "odata/$metadata"
+        metadata: "/$metadata"
       }
 
       FILTERABLE_ENDPOINTS.keys.each do |method_name|
@@ -82,7 +83,9 @@ module RESO
         OAuth2::Client.new(
           client_id,
           client_secret,
-          token_url: [base_url, "oauth2/token"].join
+          token_url: auth_url,
+          scope: "api",
+          grant_type: "client_credentials"
         )
       end
 

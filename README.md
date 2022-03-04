@@ -31,11 +31,14 @@ To set up an API client and access a service, you need three pieces of informati
 - Client ID
 - Client Secret
 - Base API endpoint
+- Authentication URL
 
-You pass these three pieces of information when creating an instance of an API client:
+You'll recognize the base API endpoint by it ending with /odata, and the authentication URL by it likely ending with /token.
+
+You pass these four pieces of information to create an instance of an API client:
 
 ```ruby
-client = RESO::API::Client.new(client_id: client_id, client_secret: client_secret, base_url: base_url)
+client = RESO::API::Client.new(client_id: client_id, client_secret: client_secret, auth_url: auth_url, base_url: base_url)
 ```
 
 When calling API endpoints using the initialized client, it will automatically fetch and manage access and authentication tokens transparently in the background.
@@ -200,6 +203,7 @@ client.properties(top: 5, orderby: "ListingKey", skiptoken: "3yd-AAABORMI-320039
 This gem should work with any RESO Web API compliant service, but these are those that have been confirmed to work.
 
 - [ListHub](https://www.listhub.com)
+- [CoreLogic Trestle](https://trestle.corelogic.com)
 
 If you use this gem to connect to another service or MLS, please submit a pull request with that service added in alphabetical order in this list.
 
