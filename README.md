@@ -143,7 +143,24 @@ $expand in oData is meant to join two resources together. For the Syndication AP
 client.properties(expand: "Media")
 ```
 
-#### Pagination, $top, and $skip
+#### Automatically iterate over all results
+
+By passing a block to Media, Member, Office, and Property resource calls, subsequent paginated calls will automatically be made until the whole result set has been traversed. The block provided is executed for each returned object hash.
+
+Here are a couple of examples of how that can be used:
+
+```ruby
+client.properties(filter: "StandardStatus eq 'Active'") do |hash|
+  puts "#{hash['ListingKey']} – #{hash['UnparsedAddress']}"
+end
+
+client.properties(filter: "StandardStatus eq 'Active'") do |hash|
+  Listing.create(listing_key: hash['ListingKey'], data: hash)
+end
+```
+
+
+#### Manually iterate over all results
 
 The default number of results returned is 100. You can override the default limit using the `$top` parameter. The higher the number specific for `$top`, the longer the API response will take, and pay attention to that different services does enforce a cap for number of records returned.
 

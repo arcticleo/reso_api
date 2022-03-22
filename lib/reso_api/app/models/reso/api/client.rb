@@ -47,7 +47,7 @@ module RESO
       }
 
       FILTERABLE_ENDPOINTS.keys.each do |method_name|
-        define_method method_name do |*args|
+        define_method method_name do |*args, &block|
           hash = args.first.is_a?(Hash) ? args.first : {}
           endpoint = FILTERABLE_ENDPOINTS[method_name]
           params = {
@@ -61,7 +61,16 @@ module RESO
             "$count": hash[:count].to_s.presence,
             "$debug": hash[:debug]
           }.compact
-          return perform_call(endpoint, params)
+          if !block.nil?
+            response = perform_call(endpoint, params)
+            response["value"].each{|hash| block.call(hash)} if response["value"].class.eql?(Array)
+            while response["@odata.nextLink"].present?
+              response = perform_call(response["@odata.nextLink"], nil)
+              response["value"].each{|hash| block.call(hash)} if response["value"].class.eql?(Array)
+            end
+          else
+            return perform_call(endpoint, params)
+          end
         end
       end
 
