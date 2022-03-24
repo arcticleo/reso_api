@@ -64,8 +64,9 @@ module RESO
           if !block.nil?
             response = perform_call(endpoint, params)
             response["value"].each{|hash| block.call(hash)} if response["value"].class.eql?(Array)
-            while response["@odata.nextLink"].present?
-              response = perform_call(response["@odata.nextLink"], nil)
+            while (next_link = response["@odata.nextLink"]).present?
+              endpoint = next_link.delete_prefix(base_url)
+              response = perform_call(endpoint, nil)
               response["value"].each{|hash| block.call(hash)} if response["value"].class.eql?(Array)
             end
           else
