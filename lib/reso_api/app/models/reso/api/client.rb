@@ -132,7 +132,11 @@ module RESO
       end
 
       def uri_for_endpoint endpoint
-        return URI([base_url, endpoint].join)
+        if endpoint.start_with?(base_url)
+          URI(endpoint)
+        else
+          URI([base_url, endpoint].join)
+        end
       end
 
       def perform_call(endpoint, params)
