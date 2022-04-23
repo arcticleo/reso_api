@@ -65,8 +65,7 @@ module RESO
             response = perform_call(endpoint, params)
             response["value"].each{|hash| block.call(hash)} if response["value"].class.eql?(Array)
             while (next_link = response["@odata.nextLink"]).present?
-              endpoint = next_link.delete_prefix(base_url)
-              response = perform_call(endpoint, nil)
+              response = perform_call(next_link, nil)
               response["value"].each{|hash| block.call(hash)} if response["value"].class.eql?(Array)
             end
           else
@@ -133,7 +132,7 @@ module RESO
       end
 
       def uri_for_endpoint endpoint
-        return URI([base_url, endpoint].join)
+        return URI(endpoint).host? ? endpoint : URI([base_url, endpoint].join)
       end
 
       def perform_call(endpoint, params)
