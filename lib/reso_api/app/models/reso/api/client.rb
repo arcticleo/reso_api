@@ -132,7 +132,7 @@ module RESO
       end
 
       def uri_for_endpoint endpoint
-        return URI(endpoint).host.blank? ? URI([base_url, endpoint].join) : endpoint
+        return URI(endpoint).host ? URI(endpoint) : URI([base_url, endpoint].join)
       end
 
       def perform_call(endpoint, params)
