@@ -145,6 +145,7 @@ module RESO
         request = Net::HTTP::Get.new(uri.request_uri)
         request['Authorization'] = "Bearer #{oauth2_token}"
         response = Net::HTTP.start(uri.host, uri.port, :use_ssl => uri.scheme == 'https') do |http|
+          http.max_retries = 10
           http.request(request)
         end
         return JSON(response.body) rescue response.body
