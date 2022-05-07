@@ -50,6 +50,7 @@ module RESO
         define_method method_name do |*args, &block|
           hash = args.first.is_a?(Hash) ? args.first : {}
           endpoint = FILTERABLE_ENDPOINTS[method_name]
+          response = {}
           params = {
             "$select": hash[:select],
             "$filter": hash[:filter],
@@ -61,6 +62,7 @@ module RESO
             "$count": hash[:count].to_s.presence,
             "$debug": hash[:debug]
           }.compact
+          File.open("timespans", 'a') { |file| file.write("Timestamp\tDuration\tCode\tMessage\tPath\n") }
           if !block.nil?
             response = perform_call(endpoint, params)
             response["value"].each{|hash| block.call(hash)} if response["value"].class.eql?(Array)
@@ -106,10 +108,15 @@ module RESO
         if expiration > DateTime.now.utc
           return payload.token
         else
-          @oauth2_payload = oauth2_client.client_credentials.get_token
-          File.write(oauth2_token_path, @oauth2_payload.to_hash.to_json)
+          @oauth2_payload = fresh_oauth2_payload
           return @oauth2_payload.token
         end
+      end
+
+      def fresh_oauth2_payload
+        @oauth2_payload = oauth2_client.client_credentials.get_token
+        File.write(oauth2_token_path, @oauth2_payload.to_hash.to_json)
+        return @oauth2_payload
       end
 
       def oauth2_token_path
@@ -137,18 +144,34 @@ module RESO
 
       def perform_call(endpoint, params)
         uri = uri_for_endpoint(endpoint)
+        retries = 0
         if params.present?
           query = params.present? ? URI.encode_www_form(params).gsub("+", " ") : ""
           uri.query && uri.query.length > 0 ? uri.query += '&' + query : uri.query = query
           return URI::decode(uri.request_uri) if params.dig(:$debug).present?
         end
-        request = Net::HTTP::Get.new(uri.request_uri)
-        request['Authorization'] = "Bearer #{oauth2_token}"
-        response = Net::HTTP.start(uri.host, uri.port, :use_ssl => uri.scheme == 'https') do |http|
-          http.max_retries = 10
-          http.request(request)
+        begin
+          req = Net::HTTP::Get.new(uri.request_uri)
+          req['Authorization'] = "Bearer #{oauth2_token}"
+          res = Net::HTTP.start(uri.host, uri.port, :use_ssl => uri.scheme == 'https') do |http|
+            http.request(req)
+          end
+          response = JSON(res.body) rescue res.body
+          if response.is_a?(String) && response.include?('Bad Gateway')
+            raise StandardError
+          elsif response.is_a?(String) && response.include?('Unauthorized')
+            fresh_oauth2_payload
+            raise StandardError
+          elsif response.is_a?(Hash) && response.has_key?("error")
+            raise StandardError
+          end
+        rescue Net::ReadTimeout, StandardError
+          if (retries += 1) <= 5
+            sleep 10
+            retry
+          end
         end
-        return JSON(response.body) rescue response.body
+        return response
       end
 
     end
