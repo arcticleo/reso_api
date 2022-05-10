@@ -62,7 +62,6 @@ module RESO
             "$count": hash[:count].to_s.presence,
             "$debug": hash[:debug]
           }.compact
-          File.open("timespans", 'a') { |file| file.write("Timestamp\tDuration\tCode\tMessage\tPath\n") }
           if !block.nil?
             response = perform_call(endpoint, params)
             response["value"].each{|hash| block.call(hash)} if response["value"].class.eql?(Array)
@@ -169,6 +168,8 @@ module RESO
           if (retries += 1) <= 5
             sleep 10
             retry
+          else
+            raise
           end
         end
         return response
