@@ -64,10 +64,17 @@ module RESO
           }.compact
           if !block.nil?
             response = perform_call(endpoint, params)
-            response["value"].each{|hash| block.call(hash)} if response["value"].class.eql?(Array)
+            
+            if response["value"].class.eql?(Array)
+              hash[:batch] ? block.call(response["value"]) : response["value"].each{|hash| block.call(hash)} 
+            end
+
             while (next_link = response["@odata.nextLink"]).present?
               response = perform_call(next_link, nil)
-              response["value"].each{|hash| block.call(hash)} if response["value"].class.eql?(Array)
+              
+              if response["value"].class.eql?(Array)
+                hash[:batch] ? block.call(response["value"]) : response["value"].each{|hash| block.call(hash)} 
+              end
             end
           else
             return perform_call(endpoint, params)

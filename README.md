@@ -145,7 +145,7 @@ client.properties(expand: "Media")
 
 #### Automatically iterate over all results
 
-By passing a block to Media, Member, Office, and Property resource calls, subsequent paginated calls will automatically be made until the whole result set has been traversed. The block provided is executed for each returned object hash.
+By passing a block to Media, Member, Office, and Property resource calls, subsequent paginated calls will automatically be made until the whole result set has been traversed. The block provided is executed for each returned object hash. The `batch` option can be used to return the full array of results. 
 
 Here are a couple of examples of how that can be used:
 
@@ -156,6 +156,10 @@ end
 
 client.properties(filter: "StandardStatus eq 'Active'") do |hash|
   Listing.create(listing_key: hash['ListingKey'], data: hash)
+end
+
+client.properties(filter: "StandardStatus eq 'Active'", batch: true) do |results|
+  Listing.insert_all(results) # Perform some batch operation
 end
 ```
 
