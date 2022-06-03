@@ -85,7 +85,6 @@ module RESO
                 end
               end
             end
-            threads.each(&:join)
           else
             return perform_call(endpoint, params)
           end
@@ -179,6 +178,9 @@ module RESO
             fresh_oauth2_payload
             raise StandardError
           elsif response.is_a?(Hash) && response.has_key?("error")
+            raise StandardError
+          elsif response.is_a?(Hash) && response.has_key?("retry-after")
+            sleep response["retry-after"].to_i
             raise StandardError
           end
         rescue Net::ReadTimeout, StandardError
