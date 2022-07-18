@@ -85,6 +85,7 @@ module RESO
                 end
               end
             end
+            threads.each(&:join)
           else
             return perform_call(endpoint, params)
           end
