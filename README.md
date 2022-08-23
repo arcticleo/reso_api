@@ -143,6 +143,14 @@ $expand in oData is meant to join two resources together. For the Syndication AP
 client.properties(expand: "Media")
 ```
 
+#### $ignorenulls
+
+For servers that support it, $ignorenulls omits empty keys from the response to reduce data size.
+
+```ruby
+client.properties(ignorenulls: "true")
+```
+
 #### Automatically iterate over all results
 
 By passing a block to Media, Member, Office, and Property resource calls, subsequent paginated calls will automatically be made until the whole result set has been traversed. The block provided is executed for each returned object hash. The `batch` option can be used to return the full array of results. 
@@ -224,6 +232,7 @@ client.properties(top: 5, orderby: "ListingKey", skiptoken: "3yd-AAABORMI-320039
 This gem should work with any RESO Web API compliant service, but these are those that have been confirmed to work.
 
 - [ListHub](https://www.listhub.com)
+- [Constellation1](https://constellation1.com)
 - [CoreLogic Trestle](https://trestle.corelogic.com)
 
 If you use this gem to connect to another service or MLS, please submit a pull request with that service added in alphabetical order in this list.
