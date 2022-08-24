@@ -148,7 +148,7 @@ client.properties(expand: "Media")
 For servers that support it, `$ignorenulls` omits empty keys from the response to reduce data size.
 
 ```ruby
-client.properties(ignorenulls: "true")
+client.properties(ignorenulls: true)
 ```
 
 #### Automatically iterate over all results
