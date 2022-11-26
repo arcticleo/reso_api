@@ -61,6 +61,7 @@ module RESO
             "$skiptoken": hash[:skiptoken],
             "$expand": hash[:expand],
             "$count": hash[:count].to_s.presence,
+            "$ignorenulls": hash[:ignorenulls].to_s.presence,
             "$debug": hash[:debug]
           }.compact
           if !block.nil?
@@ -85,6 +86,7 @@ module RESO
                 end
               end
             end
+            threads.each(&:join)
           else
             return perform_call(endpoint, params)
           end
@@ -129,7 +131,7 @@ module RESO
       end
 
       def fresh_oauth2_payload
-        @oauth2_payload = oauth2_client.client_credentials.get_token
+        @oauth2_payload = oauth2_client.client_credentials.get_token('client_id' => client_id, 'client_secret' => client_secret)
         File.write(oauth2_token_path, @oauth2_payload.to_hash.to_json)
         return @oauth2_payload
       end
@@ -147,7 +149,7 @@ module RESO
           persisted = File.read(oauth2_token_path)
           payload = OAuth2::AccessToken.from_hash(oauth2_client, JSON.parse(persisted))
         else
-          payload = oauth2_client.client_credentials.get_token
+          payload = oauth2_client.client_credentials.get_token('client_id' => client_id, 'client_secret' => client_secret)
           File.write(oauth2_token_path, payload.to_hash.to_json)
         end
         return payload
