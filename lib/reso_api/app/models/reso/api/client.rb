@@ -164,13 +164,17 @@ module RESO
           end
           response = JSON(res.body) rescue res.body
           if response.is_a?(String) && response.include?('Bad Gateway')
+            puts "Error: Bad Gateway."
             raise StandardError
           elsif response.is_a?(String) && response.include?('Unauthorized')
+            puts "Error: Unauthorized."
             fresh_oauth2_payload
             raise StandardError
           elsif response.is_a?(Hash) && response.has_key?("error")
+            puts "Error."
             raise StandardError
           elsif response.is_a?(Hash) && response.has_key?("retry-after")
+            puts "Error: Retrying in #{response["retry-after"].to_i}} seconds."
             sleep response["retry-after"].to_i
             raise StandardError
           end
