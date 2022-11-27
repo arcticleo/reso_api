@@ -51,7 +51,6 @@ module RESO
           hash = args.first.is_a?(Hash) ? args.first : {}
           endpoint = FILTERABLE_ENDPOINTS[method_name]
           response = {}
-          threads = []
           params = {
             "$select": hash[:select],
             "$filter": hash[:filter],
@@ -68,25 +67,15 @@ module RESO
             response = perform_call(endpoint, params)
             
             if response["value"].class.eql?(Array)
-              threads << Thread.new do
-                hash[:batch] ? block.call(response["value"]) : response["value"].each{|hash| block.call(hash)}
-              end
+              hash[:batch] ? block.call(response["value"]) : response["value"].each{|hash| block.call(hash)}
             end
 
             while (next_link = response["@odata.nextLink"]).present?
-              threads << Thread.new do
-                response = perform_call(next_link, nil)
-              end
-
-              threads.each(&:join)
-
+              response = perform_call(next_link, nil)
               if response["value"].class.eql?(Array)
-                threads << Thread.new do
-                  hash[:batch] ? block.call(response["value"]) : response["value"].each{|hash| block.call(hash)}
-                end
+                hash[:batch] ? block.call(response["value"]) : response["value"].each{|hash| block.call(hash)}
               end
             end
-            threads.each(&:join)
           else
             return perform_call(endpoint, params)
           end
