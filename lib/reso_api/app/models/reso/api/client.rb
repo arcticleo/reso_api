@@ -55,7 +55,7 @@ module RESO
             "$select": hash[:select],
             "$filter": hash[:filter],
             "$top": hash[:top] ||= 100,
-            "$skip": hash[:skip] ||= 0,
+            "$skip": hash[:skip],
             "$orderby": hash[:orderby] ||= RESOURCE_KEYS[method_name],
             "$skiptoken": hash[:skiptoken],
             "$expand": hash[:expand],
