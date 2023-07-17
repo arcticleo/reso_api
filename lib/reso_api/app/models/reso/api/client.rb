@@ -126,7 +126,7 @@ module RESO
       end
 
       def oauth2_token_path
-        File.join(Dir.tmpdir, [base_url.parameterize, "-oauth-token.json"].join)
+        File.join(Dir.tmpdir, [base_url.parameterize, client_id, "oauth-token.json"].join("-"))
       end
 
       def oauth2_payload
