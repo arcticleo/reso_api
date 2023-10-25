@@ -26,14 +26,21 @@ Or install it yourself as:
 
 ### Authentication and Access
 
-To set up an API client and access a service, you need three pieces of information:
+This gem supports two types of authentication:
+
+- OAuth2
+- Access Token
+
+#### OAuth2
+
+To set up an API client using OAuth2 authentication, you need four pieces of information:
 
 - Client ID
 - Client Secret
 - Base API endpoint
 - Authentication URL
 
-You'll recognize the base API endpoint by it ending with /odata, and the authentication URL by it likely ending with /token.
+Often, the base API endpoint ends with `/odata`, and the authentication URL often ends with `/token`.
 
 You pass these four pieces of information to create an instance of an API client:
 
@@ -42,6 +49,20 @@ client = RESO::API::Client.new(client_id: client_id, client_secret: client_secre
 ```
 
 When calling API endpoints using the initialized client, it will automatically fetch and manage access and authentication tokens transparently in the background.
+
+#### Access Token
+
+Some systems, like MLSGRID and Spark/Flexmls provides a persistent Access Token. In these cases, you need these two pieces of information to set up an API client:
+
+- Access Token
+- Base API endpoint
+
+You pass these two pieces of information to create an instance of an API client:
+
+```ruby
+client = RESO::API::Client.new(access_token: access_token, base_url: base_url)
+```
+
 
 ### Resources
 

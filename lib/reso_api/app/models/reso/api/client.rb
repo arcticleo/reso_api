@@ -7,18 +7,22 @@ module RESO
       require 'json'
       require 'tmpdir'
 
-      attr_accessor :client_id, :client_secret, :auth_url, :base_url
+      attr_accessor :access_token, :client_id, :client_secret, :auth_url, :base_url
 
       def initialize(**opts)
-        @client_id, @client_secret, @auth_url, @base_url = opts.values_at(:client_id, :client_secret, :auth_url, :base_url)
+        @access_token, @client_id, @client_secret, @auth_url, @base_url = opts.values_at(:access_token, :client_id, :client_secret, :auth_url, :base_url)
         validate!
       end
 
       def validate!
-        raise 'Missing Client ID `client_id`' if client_id.nil?
-        raise 'Missing Client Secret `client_secret`' if client_secret.nil?
-        raise 'Missing Authentication URL `auth_url`' if auth_url.nil?
-        raise 'Missing API Base URL `base_url`' if base_url.nil?
+        if access_token.nil?
+          raise 'Missing Client ID `client_id`' if client_id.nil?
+          raise 'Missing Client Secret `client_secret`' if client_secret.nil?
+          raise 'Missing Authentication URL `auth_url`' if auth_url.nil?
+          raise 'Missing API Base URL `base_url`' if base_url.nil?
+        else
+          raise 'Missing API Base URL `base_url`' if base_url.nil?
+        end
       end
 
       RESOURCE_KEYS = {
@@ -96,6 +100,10 @@ module RESO
         end
       end
 
+      def auth_token
+        access_token.presence ? access_token : oauth2_token
+      end
+
       def oauth2_client
         OAuth2::Client.new(
           client_id,
@@ -158,7 +166,7 @@ module RESO
         end
         begin
           req = Net::HTTP::Get.new(uri.request_uri)
-          req['Authorization'] = "Bearer #{oauth2_token}"
+          req['Authorization'] = "Bearer #{auth_token}"
           res = Net::HTTP.start(uri.host, uri.port, :use_ssl => uri.scheme == 'https') do |http|
             http.request(req)
           end
