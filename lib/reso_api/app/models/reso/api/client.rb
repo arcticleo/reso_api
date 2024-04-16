@@ -7,10 +7,10 @@ module RESO
       require 'json'
       require 'tmpdir'
 
-      attr_accessor :access_token, :client_id, :client_secret, :auth_url, :base_url
+      attr_accessor :access_token, :client_id, :client_secret, :auth_url, :base_url, :scope
 
       def initialize(**opts)
-        @access_token, @client_id, @client_secret, @auth_url, @base_url = opts.values_at(:access_token, :client_id, :client_secret, :auth_url, :base_url)
+        @access_token, @client_id, @client_secret, @auth_url, @base_url, @scope = opts.values_at(:access_token, :client_id, :client_secret, :auth_url, :base_url, :scope)
         validate!
       end
 
@@ -109,7 +109,7 @@ module RESO
           client_id,
           client_secret,
           token_url: auth_url,
-          scope: "api",
+          scope: scope.presence || "api",
           grant_type: "client_credentials"
         )
       end
@@ -128,7 +128,7 @@ module RESO
       end
 
       def fresh_oauth2_payload
-        @oauth2_payload = oauth2_client.client_credentials.get_token('client_id' => client_id, 'client_secret' => client_secret)
+        @oauth2_payload = oauth2_client.client_credentials.get_token('client_id' => client_id, 'client_secret' => client_secret, 'scope' => scope || "api")
         File.write(oauth2_token_path, @oauth2_payload.to_hash.to_json)
         return @oauth2_payload
       end
@@ -146,7 +146,7 @@ module RESO
           persisted = File.read(oauth2_token_path)
           payload = OAuth2::AccessToken.from_hash(oauth2_client, JSON.parse(persisted))
         else
-          payload = oauth2_client.client_credentials.get_token('client_id' => client_id, 'client_secret' => client_secret)
+          payload = oauth2_client.client_credentials.get_token('client_id' => client_id, 'client_secret' => client_secret, 'scope' => scope || "api")
           File.write(oauth2_token_path, payload.to_hash.to_json)
         end
         return payload
@@ -179,7 +179,7 @@ module RESO
             fresh_oauth2_payload
             raise StandardError
           elsif response.is_a?(Hash) && response.has_key?("error")
-            puts "Error."
+            puts "Error: #{response.inspect}"
             raise StandardError
           elsif response.is_a?(Hash) && response.has_key?("retry-after")
             puts "Error: Retrying in #{response["retry-after"].to_i}} seconds."

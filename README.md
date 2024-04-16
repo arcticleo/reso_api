@@ -37,15 +37,18 @@ To set up an API client using OAuth2 authentication, you need four pieces of inf
 
 - Client ID
 - Client Secret
-- Base API endpoint
 - Authentication URL
+- Base URL
+- Scope
 
-Often, the base API endpoint ends with `/odata`, and the authentication URL often ends with `/token`.
+Often, the base URL ends with `/odata`, and the authentication URL often ends with `/token`.
+
+Scope defaults to "api" and only needs to be included if it is "OData" or something else.
 
 You pass these four pieces of information to create an instance of an API client:
 
 ```ruby
-client = RESO::API::Client.new(client_id: client_id, client_secret: client_secret, auth_url: auth_url, base_url: base_url)
+client = RESO::API::Client.new(client_id: client_id, client_secret: client_secret, auth_url: auth_url, base_url: base_url, scope: scope)
 ```
 
 When calling API endpoints using the initialized client, it will automatically fetch and manage access and authentication tokens transparently in the background.
