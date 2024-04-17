@@ -29,6 +29,7 @@ module RESO
         media: "MediaKey",
         members: "MemberKey",
         offices: "OfficeKey",
+        open_houses: "OpenHouseKey",
         properties: "ListingKey"
       }
 
@@ -36,6 +37,7 @@ module RESO
         medium: "/Media",
         member: "/Member",
         office: "/Office",
+        open_house: "/OpenHouse",
         property: "/Property"
       }
 
@@ -43,6 +45,7 @@ module RESO
         media: "/Media",
         members: "/Member",
         offices: "/Office",
+        open_houses: "/OpenHouse",
         properties: "/Property"
       }
 
@@ -58,9 +61,9 @@ module RESO
           params = {
             "$select": hash[:select],
             "$filter": hash[:filter],
-            "$top": hash[:top] ||= 100,
+            "$top": hash[:top].presence,
             "$skip": hash[:skip],
-            "$orderby": hash[:orderby] ||= RESOURCE_KEYS[method_name],
+            "$orderby": hash[:orderby].to_a.presence,
             "$skiptoken": hash[:skiptoken],
             "$expand": hash[:expand],
             "$count": hash[:count].to_s.presence,
