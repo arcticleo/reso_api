@@ -39,16 +39,22 @@ To set up an API client using OAuth2 authentication, you need four pieces of inf
 - Client Secret
 - Authentication URL
 - Base URL
-- Scope
 
 Often, the base URL ends with `/odata`, and the authentication URL often ends with `/token`.
 
+There are two additional pieces of information that are not required:
+
+- Scope
+- Originating System Name (OSN)
+
 Scope defaults to "api" and only needs to be included if it is "OData" or something else.
 
-You pass these four pieces of information to create an instance of an API client:
+Some MLS systems require Originating System Name to be included in requests.
+
+You pass these 4—6 pieces of information to create an instance of an API client:
 
 ```ruby
-client = RESO::API::Client.new(client_id: client_id, client_secret: client_secret, auth_url: auth_url, base_url: base_url, scope: scope)
+client = RESO::API::Client.new(client_id: client_id, client_secret: client_secret, auth_url: auth_url, base_url: base_url, scope: scope, osn: osn)
 ```
 
 When calling API endpoints using the initialized client, it will automatically fetch and manage access and authentication tokens transparently in the background.
@@ -127,14 +133,17 @@ client.properties(filter: "StandardStatus eq 'Active' and BrokerName eq 'Doe Bro
 ```
 RESO Web API is built on the OData standard, but only requires compliant servers to support a subset of queries:
 
-| Operator   | Description            | Example                      |
-|------------|------------------------|------------------------------|
-|    `eq`    | Equals                 | `StandardStatus eq 'Active'` |
-|    `ne`    | Not equals             | `StandardStatus ne 'Active'` |
-|    `ge`    | Greater than or equals | `ListPrice ge 100000`        |
-|    `gt`    | Greater than           | `ListPrice gt 100000`        |
-|    `le`    | Less than or equals    | `ListPrice le 100000`        |
-|    `lt`    | Less than              | `ListPrice lt 100000`        |
+| Operator   | Description            | Example                                  |
+|------------|------------------------|------------------------------------------|
+|    `eq`    | Equals                 | `StandardStatus eq 'Active'`             |
+|    `ne`    | Not equals             | `StandardStatus ne 'Active'`             |
+|    `in`    | In                     | `StandardStatus in ('Active','Pending')` |
+|    `ge`    | Greater than or equals | `ListPrice ge 100000`                    |
+|    `gt`    | Greater than           | `ListPrice gt 100000`                    |
+|    `le`    | Less than or equals    | `ListPrice le 100000`                    |
+|    `lt`    | Less than              | `ListPrice lt 100000`                    |
+
+Some older MLS systems does not support `in`.
 
 #### $select
 
@@ -161,11 +170,20 @@ client.properties(orderby: "City desc")
 
 #### $expand
 
-$expand in oData is meant to join two resources together. For the Syndication API this means you can bring in photos to any property query.
+$expand in OData is for joining additional resources. For the Syndication API this means you can bring in photos to any property query.
 
 ```ruby
 client.properties(expand: "Media")
 ```
+
+Different MLS systems support different resources to be included in an `$expand` statement. You can query for which resources the system you're integrating with supports:
+
+```ruby
+expandables = client.supported_expandables
+client.properties(expand: expandables)
+```
+
+The `supported_expandables` method is a slow request, so you should store or cache the result of this method to speed up subsequent requests.
 
 #### $ignorenulls
 
@@ -258,6 +276,7 @@ This gem should work with any RESO Web API compliant service, but these are thos
 - [Constellation1](https://constellation1.com)
 - [CoreLogic Trestle](https://trestle.corelogic.com)
 - [ListHub](https://www.listhub.com)
+- [Spark API](https://www.sparkapi.io)
 
 If you use this gem to connect to another service or MLS, please submit a pull request with that service added in alphabetical order in this list.
 

@@ -7,10 +7,10 @@ module RESO
       require 'json'
       require 'tmpdir'
 
-      attr_accessor :access_token, :client_id, :client_secret, :auth_url, :base_url, :scope
+      attr_accessor :access_token, :client_id, :client_secret, :auth_url, :base_url, :scope, :osn
 
       def initialize(**opts)
-        @access_token, @client_id, @client_secret, @auth_url, @base_url, @scope = opts.values_at(:access_token, :client_id, :client_secret, :auth_url, :base_url, :scope)
+        @access_token, @client_id, @client_secret, @auth_url, @base_url, @scope, @osn = opts.values_at(:access_token, :client_id, :client_secret, :auth_url, :base_url, :scope, :osn)
         validate!
       end
 
@@ -159,15 +159,17 @@ module RESO
         return URI(endpoint).host ? URI(endpoint) : URI([base_url, endpoint].join)
       end
 
-      def perform_call(endpoint, params)
+      def perform_call(endpoint, params, max_retries = 5, debug = false)
         uri = uri_for_endpoint(endpoint)
+        params = params.presence || {}
         retries = 0
-        if params.present?
-          query = params.present? ? URI.encode_www_form(params).gsub("+", " ") : ""
-          uri.query && uri.query.length > 0 ? uri.query += '&' + query : uri.query = query
-          return URI::decode(uri.request_uri) if params.dig(:$debug).present?
-        end
-        begin
+
+        params['$filter'] = "OriginatingSystemName eq '#{osn}'" if osn.present?
+        query = params.present? ? URI.encode_www_form(params).gsub("+", " ") : ""
+        uri.query && uri.query.length > 0 ? uri.query += '&' + query : uri.query = query
+        return URI::decode(uri.request_uri) if params.dig(:$debug).present?
+
+          begin
           req = Net::HTTP::Get.new(uri.request_uri)
           req['Authorization'] = "Bearer #{auth_token}"
           res = Net::HTTP.start(uri.host, uri.port, :use_ssl => uri.scheme == 'https') do |http|
@@ -175,23 +177,23 @@ module RESO
           end
           response = JSON(res.body) rescue res.body
           if response.is_a?(String) && response.include?('Bad Gateway')
-            puts "Error: Bad Gateway."
+            puts "Error: Bad Gateway." if debug
             raise StandardError
           elsif response.is_a?(String) && response.include?('Unauthorized')
-            puts "Error: Unauthorized."
+            puts "Error: Unauthorized." if debug
             fresh_oauth2_payload
             raise StandardError
           elsif response.is_a?(Hash) && response.has_key?("error")
-            puts "Error: #{response.inspect}"
+            puts "Error: #{response.inspect}" if debug
             raise StandardError
           elsif response.is_a?(Hash) && response.has_key?("retry-after")
-            puts "Error: Retrying in #{response["retry-after"].to_i}} seconds."
+            puts "Error: Retrying in #{response["retry-after"].to_i}} seconds." if debug
             sleep response["retry-after"].to_i
             raise StandardError
           end
         rescue Net::ReadTimeout, StandardError
-          if (retries += 1) <= 5
-            sleep 10
+          if (retries += 1) <= max_retries
+            sleep 5
             retry
           else
             raise
@@ -200,6 +202,33 @@ module RESO
         return response
       end
 
+      def entity_names
+        doc = Nokogiri::XML(metadata)
+        namespace = { 'edm' => 'http://docs.oasis-open.org/odata/ns/edm' }
+        doc.xpath('//edm:EntityType', namespace).map { |node| node['Name'] }
+      end
+
+      def supported_expandables
+        expandables_arr = []
+
+        entity_names.each do |entity_name|
+          success = try_expand(entity_name)
+          expandables_arr << entity_name if success
+        end
+
+        expandables_arr.join(',').presence
+      end
+
+      def try_expand(entity_name)
+        endpoint = '/Property'
+        params = { '$expand' => entity_name }
+        params['$filter'] = "OriginatingSystemName eq '#{osn}'" if osn.present?
+
+        response = perform_call(endpoint, params, max_retries = 0)
+        !response.is_a?(Hash) || !response.key?('error')
+      rescue StandardError
+        false
+      end
     end
   end
 end
