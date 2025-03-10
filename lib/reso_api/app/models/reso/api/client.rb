@@ -225,7 +225,7 @@ module RESO
         params['$filter'] = "OriginatingSystemName eq '#{osn}'" if osn.present?
 
         response = perform_call(endpoint, params, max_retries = 0)
-        (!response.is_a?(Hash) || !response.key?('error')) && response['statusCode'].blank?
+        (!response.is_a?(Hash) || !response.key?('error')) && response['statusCode'].blank? && response['status'].blank?
       rescue StandardError
         false
       end
