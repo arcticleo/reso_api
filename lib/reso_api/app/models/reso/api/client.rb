@@ -55,12 +55,14 @@ module RESO
 
       FILTERABLE_ENDPOINTS.keys.each do |method_name|
         define_method method_name do |*args, &block|
+          filter = hash[:filter]
+          filter = [filter, "OriginatingSystemName eq '#{osn}'"]].compact.join(" and ") if osn.present?
           hash = args.first.is_a?(Hash) ? args.first : {}
           endpoint = FILTERABLE_ENDPOINTS[method_name]
           response = {}
           params = {
             "$select": hash[:select],
-            "$filter": hash[:filter],
+            "$filter": filter,
             "$top": hash[:top].presence,
             "$skip": hash[:skip],
             "$orderby": hash[:orderby].to_a.presence,
@@ -72,7 +74,7 @@ module RESO
           }.compact
           if !block.nil?
             response = perform_call(endpoint, params)
-            
+
             if response["value"].class.eql?(Array)
               hash[:batch] ? block.call(response["value"]) : response["value"].each{|hash| block.call(hash)}
             end
@@ -164,7 +166,6 @@ module RESO
         params = params.presence || {}
         retries = 0
 
-        params['$filter'] = "OriginatingSystemName eq '#{osn}'" if osn.present?
         query = params.present? ? URI.encode_www_form(params).gsub("+", " ") : ""
         uri.query && uri.query.length > 0 ? uri.query += '&' + query : uri.query = query
         return URI::decode(uri.request_uri) if params.dig(:$debug).present?
