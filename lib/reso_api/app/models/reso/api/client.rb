@@ -56,7 +56,7 @@ module RESO
       FILTERABLE_ENDPOINTS.keys.each do |method_name|
         define_method method_name do |*args, &block|
           filter = hash[:filter]
-          filter = [filter, "OriginatingSystemName eq '#{osn}'"]].compact.join(" and ") if osn.present?
+          filter = [filter, "OriginatingSystemName eq '#{osn}'"].compact.join(' and ') if osn.present?
           hash = args.first.is_a?(Hash) ? args.first : {}
           endpoint = FILTERABLE_ENDPOINTS[method_name]
           response = {}
