@@ -55,9 +55,11 @@ module RESO
 
       FILTERABLE_ENDPOINTS.keys.each do |method_name|
         define_method method_name do |*args, &block|
+          hash = args.first.is_a?(Hash) ? args.first : {}
+
           filter = hash[:filter]
           filter = [filter, "OriginatingSystemName eq '#{osn}'"].compact.join(' and ') if osn.present?
-          hash = args.first.is_a?(Hash) ? args.first : {}
+
           endpoint = FILTERABLE_ENDPOINTS[method_name]
           response = {}
           params = {
@@ -223,7 +225,6 @@ module RESO
       def try_expand(entity_name)
         endpoint = '/Property'
         params = { '$expand' => entity_name }
-        params['$filter'] = "OriginatingSystemName eq '#{osn}'" if osn.present?
 
         response = perform_call(endpoint, params, max_retries = 0)
         (!response.is_a?(Hash) || !response.key?('error')) && response['statusCode'].blank? && response['status'].blank?
