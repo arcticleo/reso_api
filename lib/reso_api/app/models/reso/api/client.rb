@@ -79,11 +79,9 @@ module RESO
           }.compact
           if !block.nil?
             response = perform_call(endpoint, params)
-
             if response["value"].class.eql?(Array)
               hash[:batch] ? block.call(response["value"]) : response["value"].each{|hash| block.call(hash)}
             end
-
             while (next_link = response["@odata.nextLink"]).present?
               response = perform_call(next_link, nil)
               if response["value"].class.eql?(Array)
@@ -168,14 +166,15 @@ module RESO
 
       def perform_call(endpoint, params, max_retries = 5, debug = false)
         uri = uri_for_endpoint(endpoint)
-        params = params.presence || {}
         retries = 0
 
-        query = params.present? ? URI.encode_www_form(params).gsub("+", " ") : ""
-        uri.query && uri.query.length > 0 ? uri.query += '&' + query : uri.query = query
-        return URI::decode(uri.request_uri) if params.dig(:$debug).present?
+        if params.present?
+          query = params.present? ? URI.encode_www_form(params).gsub("+", " ") : ""
+          uri.query && uri.query.length > 0 ? uri.query += '&' + query : uri.query = query
+          return URI::decode(uri.request_uri) if params.dig(:$debug).present?
+        end
 
-          begin
+        begin
           req = Net::HTTP::Get.new(uri.request_uri)
           req['Authorization'] = "Bearer #{auth_token}"
           res = Net::HTTP.start(uri.host, uri.port, :use_ssl => uri.scheme == 'https') do |http|
