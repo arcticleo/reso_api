@@ -215,12 +215,14 @@ module RESO
 
       def supported_expandables
         expandables_arr = []
+        omit_arr = %w[HistoryTransactional]
 
         entity_names.each do |entity_name|
           success = try_expand(entity_name)
           expandables_arr << entity_name if success
         end
 
+        expandables_arr -= omit_arr
         expandables_arr.join(',').presence
       end
 
