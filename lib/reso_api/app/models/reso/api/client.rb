@@ -75,6 +75,7 @@ module RESO
             "$expand": hash[:expand],
             "$count": hash[:count].to_s.presence,
             "$ignorenulls": hash[:ignorenulls].to_s.presence,
+            "$ignorecase": hash[:ignorecase].to_s.presence,
             "$debug": hash[:debug]
           }.compact
           if !block.nil?
