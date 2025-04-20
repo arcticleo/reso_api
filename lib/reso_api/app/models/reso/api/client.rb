@@ -60,7 +60,7 @@ module RESO
           filter = hash[:filter].to_s
           if !filter.include?('OriginatingSystemName') && osn.present?
             osn_filter = format("OriginatingSystemName eq '%s'", osn.to_s)
-            filter = [filter, osn_filter].compact.join(' and ')
+            filter = [filter.presence, osn_filter].compact.join(' and ')
           end
 
           endpoint = FILTERABLE_ENDPOINTS[method_name]
