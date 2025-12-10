@@ -5,6 +5,7 @@ module RESO
       require 'net/http'
       require 'oauth2'
       require 'json'
+      require 'jwt'
       require 'tmpdir'
 
       attr_accessor :access_token, :client_id, :client_secret, :auth_url, :base_url, :scope, :osn
@@ -109,7 +110,31 @@ module RESO
       end
 
       def auth_token
-        access_token.presence ? access_token : oauth2_token
+        # If access_token is provided, check if it's expired
+        if access_token.present?
+          # Try to decode as JWT to check expiration
+          begin
+            token = JWT.decode(access_token, nil, false)
+            exp_timestamp = Hash(token.try(:first))["exp"].to_s
+            expiration = DateTime.strptime(exp_timestamp, '%s').utc rescue nil
+
+            # If token is expired and we have OAuth credentials, get a fresh token
+            if expiration && expiration <= DateTime.now.utc && can_use_oauth?
+              return oauth2_token
+            end
+          rescue JWT::DecodeError
+            # Not a JWT token, just use it as-is
+          end
+
+          return access_token
+        end
+
+        # No access_token provided, use OAuth flow
+        oauth2_token
+      end
+
+      def can_use_oauth?
+        client_id.present? && client_secret.present? && auth_url.present?
       end
 
       def oauth2_client
@@ -136,9 +161,13 @@ module RESO
       end
 
       def fresh_oauth2_payload
-        @oauth2_payload = oauth2_client.client_credentials.get_token('client_id' => client_id, 'client_secret' => client_secret, 'scope' => scope.presence)
-        File.write(oauth2_token_path, @oauth2_payload.to_hash.to_json)
-        return @oauth2_payload
+        begin
+          @oauth2_payload = oauth2_client.client_credentials.get_token('client_id' => client_id, 'client_secret' => client_secret, 'scope' => scope.presence)
+          File.write(oauth2_token_path, @oauth2_payload.to_hash.to_json)
+          return @oauth2_payload
+        rescue => e
+          raise StandardError, "Failed to refresh OAuth token: #{e.message}"
+        end
       end
 
       def oauth2_token_path
@@ -189,8 +218,9 @@ module RESO
             fresh_oauth2_payload
             raise StandardError
           elsif response.is_a?(Hash) && response.has_key?("error")
-            puts "Error: #{response.inspect}" if debug
-            raise StandardError
+            error_msg = response.inspect
+            puts "Error: #{error_msg}" if debug
+            raise StandardError, error_msg
           elsif response.is_a?(Hash) && response.has_key?("retry-after")
             puts "Error: Retrying in #{response["retry-after"].to_i}} seconds." if debug
             sleep response["retry-after"].to_i
