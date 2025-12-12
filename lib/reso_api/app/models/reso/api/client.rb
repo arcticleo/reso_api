@@ -165,6 +165,12 @@ module RESO
           @oauth2_payload = oauth2_client.client_credentials.get_token('client_id' => client_id, 'client_secret' => client_secret, 'scope' => scope.presence)
           File.write(oauth2_token_path, @oauth2_payload.to_hash.to_json)
           return @oauth2_payload
+        rescue OAuth2::Error => e
+          # Provide detailed error message for OAuth failures
+          error_details = "OAuth token refresh failed for #{base_url}"
+          error_details += "\n  Scope attempted: #{scope.inspect}"
+          error_details += "\n  OAuth error: #{e.message}"
+          raise StandardError, error_details
         rescue => e
           raise StandardError, "Failed to refresh OAuth token: #{e.message}"
         end
@@ -180,13 +186,43 @@ module RESO
 
       def get_oauth2_payload
         if File.exist?(oauth2_token_path)
-          persisted = File.read(oauth2_token_path)
-          payload = OAuth2::AccessToken.from_hash(oauth2_client, JSON.parse(persisted))
-        else
+          begin
+            persisted = File.read(oauth2_token_path)
+            parsed = JSON.parse(persisted)
+
+            # Check if the persisted data is a valid token (has access_token or token field)
+            if parsed['access_token'].present? || parsed['token'].present?
+              payload = OAuth2::AccessToken.from_hash(oauth2_client, parsed)
+
+              # Verify the payload actually has a token
+              if payload.token.present?
+                return payload
+              end
+            end
+
+            # If we get here, the cached token is invalid - delete it and get fresh
+            File.delete(oauth2_token_path)
+          rescue JSON::ParserError, StandardError => e
+            # If there's any error reading/parsing the cached token, delete it
+            File.delete(oauth2_token_path) if File.exist?(oauth2_token_path)
+          end
+        end
+
+        # Get fresh token
+        begin
           payload = oauth2_client.client_credentials.get_token('client_id' => client_id, 'client_secret' => client_secret, 'scope' => scope.presence)
           File.write(oauth2_token_path, payload.to_hash.to_json)
+          return payload
+        rescue OAuth2::Error => e
+          # Clean up any bad cached token
+          File.delete(oauth2_token_path) if File.exist?(oauth2_token_path)
+
+          # Provide detailed error message
+          error_details = "OAuth token request failed for #{base_url}"
+          error_details += "\n  Scope attempted: #{scope.inspect}"
+          error_details += "\n  OAuth error: #{e.message}"
+          raise StandardError, error_details
         end
-        return payload
       end
 
       def uri_for_endpoint endpoint
