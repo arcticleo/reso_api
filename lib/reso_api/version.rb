@@ -1,3 +1,3 @@
 module ResoApi
-  VERSION = "1.8.11"
+  VERSION = "1.8.12"
 end

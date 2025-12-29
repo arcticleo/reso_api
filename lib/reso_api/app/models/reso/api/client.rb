@@ -242,9 +242,21 @@ module RESO
         begin
           req = Net::HTTP::Get.new(uri.request_uri)
           req['Authorization'] = "Bearer #{auth_token}"
-          res = Net::HTTP.start(uri.host, uri.port, :use_ssl => uri.scheme == 'https') do |http|
-            http.request(req)
+
+          # Configure HTTP object before starting connection
+          http = Net::HTTP.new(uri.host, uri.port)
+          http.use_ssl = (uri.scheme == 'https')
+
+          if http.use_ssl?
+            # Configure certificate store to avoid CRL checking issues with OpenSSL 3.5+
+            # This maintains certificate chain verification while preventing CRL-related failures
+            http.verify_mode = OpenSSL::SSL::VERIFY_PEER
+            store = OpenSSL::X509::Store.new
+            store.set_default_paths
+            http.cert_store = store
           end
+
+          res = http.request(req)
           response = JSON(res.body) rescue res.body
           if response.is_a?(String) && response.include?('Bad Gateway')
             puts "Error: Bad Gateway." if debug
