@@ -9,6 +9,7 @@ module RESO
       require 'tmpdir'
 
       attr_accessor :access_token, :client_id, :client_secret, :auth_url, :base_url, :scope, :osn
+      attr_reader :last_request_url
 
       def initialize(**opts)
         @access_token, @client_id, @client_secret, @auth_url, @base_url, @scope, @osn = opts.values_at(:access_token, :client_id, :client_secret, :auth_url, :base_url, :scope, :osn)
@@ -239,6 +240,9 @@ module RESO
           return URI::decode(uri.request_uri) if params.dig(:$debug).present?
         end
 
+        # Store the full request URL for debugging
+        @last_request_url = uri.to_s
+
         begin
           req = Net::HTTP::Get.new(uri.request_uri)
           req['Authorization'] = "Bearer #{auth_token}"
@@ -282,6 +286,13 @@ module RESO
             raise
           end
         end
+
+        # Add metadata to response hash (if response is a hash)
+        if response.is_a?(Hash)
+          response['@reso_request_url'] = @last_request_url
+          response['@reso_auth_scope'] = scope
+        end
+
         return response
       end
 
