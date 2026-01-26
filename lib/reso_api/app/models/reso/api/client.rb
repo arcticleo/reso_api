@@ -227,7 +227,12 @@ module RESO
       end
 
       def uri_for_endpoint endpoint
-        return URI(endpoint).host ? URI(endpoint) : URI([base_url, endpoint].join)
+        uri = URI(endpoint)
+        return uri if uri.host
+        uri = URI(base_url)
+        path = uri.path
+        uri.path = path.include?("/$resource$") ? path.sub("/$resource$", endpoint) : [path, endpoint].join
+        return uri
       end
 
       def perform_call(endpoint, params, max_retries = 5, debug = false)

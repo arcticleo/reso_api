@@ -72,6 +72,14 @@ You pass these two pieces of information to create an instance of an API client:
 client = RESO::API::Client.new(access_token: access_token, base_url: base_url)
 ```
 
+#### Base URL for Replication
+
+Some systems, like Bridge Interactive, provide replication endpoints that differ from the ones for normal search requests by including an additional path segment *following* the resource segment. For example:
+
+    https://api.bridgedataoutput.com/api/v2/OData/{dataset_id}/Property/replication
+
+To accommodate this, the `base_url` parameter may contain a `/$resource$` segment which will be replaced for each API call with the appropriate resource segment.
+
 
 ### Resources
 
@@ -96,7 +104,7 @@ The response will be an EDMX xml schema document that matches the [RESO Data Dic
 
 ### Listing Requests
 
-The simplest query is simply to call `properties` on the initialized client: 
+The simplest query is simply to call `properties` on the initialized client:
 
 ```ruby
 client.properties
@@ -106,7 +114,7 @@ The API will return a JSON response with an array of listing JSON objects.
 
 ### Getting a single listing
 
-You can look up a single listing by sending a query with the listing's unique id (ListingKey). 
+You can look up a single listing by sending a query with the listing's unique id (ListingKey).
 
 ```ruby
 client.property('3yd-BINDER-5508272')
@@ -195,7 +203,7 @@ client.properties(ignorenulls: true)
 
 #### Automatically iterate over all results
 
-By passing a block to Media, Member, Office, and Property resource calls, subsequent paginated calls will automatically be made until the whole result set has been traversed. The block provided is executed for each returned object hash. The `batch` option can be used to return the full array of results. 
+By passing a block to Media, Member, Office, and Property resource calls, subsequent paginated calls will automatically be made until the whole result set has been traversed. The block provided is executed for each returned object hash. The `batch` option can be used to return the full array of results.
 
 Here are a couple of examples of how that can be used:
 
