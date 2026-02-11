@@ -57,6 +57,11 @@ module RESO
 
       FILTERABLE_ENDPOINTS.keys.each do |method_name|
         define_method method_name do |*args, &block|
+          # No-arg call returns a QueryBuilder for ActiveRecord-style chaining
+          if args.empty? && block.nil?
+            return QueryBuilder.new(client: self, resource: method_name)
+          end
+
           hash = args.first.is_a?(Hash) ? args.first : {}
 
           filter = hash[:filter].to_s
@@ -237,7 +242,7 @@ module RESO
         if params.present?
           query = params.present? ? URI.encode_www_form(params).gsub("+", " ") : ""
           uri.query && uri.query.length > 0 ? uri.query += '&' + query : uri.query = query
-          return URI::decode(uri.request_uri) if params.dig(:$debug).present?
+          return URI::DEFAULT_PARSER.unescape(uri.request_uri) if params.dig(:$debug).present?
         end
 
         # Store the full request URL for debugging

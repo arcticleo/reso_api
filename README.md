@@ -94,19 +94,191 @@ The response will be an EDMX xml schema document that matches the [RESO Data Dic
 
 [RESO Data Dictionary standard]: https://www.reso.org/data-dictionary/
 
-### Listing Requests
+### Query Builder (ActiveRecord-style)
 
-The simplest query is simply to call `properties` on the initialized client: 
+Calling a resource method with no arguments returns a query builder that supports chainable, ActiveRecord-style queries. Results are returned as unwrapped arrays (the contents of `value` from the OData response).
+
+For properties, a default scope of `StandardStatus in ('Active','Pending')` is automatically applied unless you specify `StandardStatus` yourself or call `.unscoped`.
+
+#### Basic queries
+
+```ruby
+# Returns array of listing hashes (default scope: Active + Pending)
+listings = client.properties.where(City: "Seattle")
+
+# Chained conditions (joined with 'and')
+listings = client.properties
+  .where(City: "Seattle")
+  .where(["ListPrice >= ?", 500_000])
+
+# Single record lookup
+listing = client.properties.find_by(ListingId: "123456")
+
+# Lookup by primary key (uses detail endpoint)
+listing = client.properties.find("3yd-BINDER-5508272")
+
+# First record
+listing = client.properties.where(City: "Seattle").first
+
+# Count
+total = client.properties.where(City: "Seattle").count
+```
+
+#### Where conditions
+
+**Hash conditions** — equality, IN, ranges, and string matching:
+
+```ruby
+.where(City: "Seattle")                          # City eq 'Seattle'
+.where(StandardStatus: ['Active', 'Pending'])     # StandardStatus in ('Active','Pending')
+.where(ListPrice: 300_000..500_000)               # ListPrice ge 300000 and ListPrice le 500000
+.where(ListPrice: 300_000..)                      # ListPrice ge 300000
+.where(ListPrice: ..500_000)                      # ListPrice le 500000
+```
+
+**String matching** — use `%` wildcards like SQL `LIKE`:
+
+```ruby
+.where(ListOfficeName: "Slifer%")                 # startswith(ListOfficeName,'Slifer')
+.where(ListOfficeName: "%Frampton")               # endswith(ListOfficeName,'Frampton')
+.where(ListOfficeName: "%Smith%")                 # contains(ListOfficeName,'Smith')
+.where(ListOfficeName: "Slifer Smith & Frampton") # exact match (no %)
+```
+
+Only `%` at the first and/or last position is treated as a wildcard. A `%` in the middle of the string (e.g. `"100% Pure"`) is treated literally. To match a literal `%` at the start or end, escape it with `\%`.
+
+**Note:** Not all MLS servers support all string functions. `startswith` has the widest support. Some servers silently return empty results for `endswith` and `contains` rather than an error.
+
+**Array conditions** — comparison operators with `?` placeholders:
+
+```ruby
+.where(["CloseDate > ?", 1.week.ago])             # CloseDate gt 2026-02-04T00:00:00Z
+.where(["ListPrice >= ?", 500_000])               # ListPrice ge 500000
+.where(["ListPrice >= ? and ListPrice <= ?", 300_000, 500_000])
+```
+
+Supported operators: `>`, `>=`, `<`, `<=`, `=`, `!=`
+
+**Named placeholders:**
+
+```ruby
+.where(["ListPrice >= :min and ListPrice <= :max", min: 300_000, max: 500_000])
+```
+
+**Negation** — call `.where` with no arguments, then `.not`:
+
+```ruby
+.where.not(City: "Seattle")                       # City ne 'Seattle'
+.where.not(StandardStatus: ['Closed', 'Expired']) # StandardStatus ne 'Closed' and ...
+```
+
+#### Value formatting
+
+Ruby values are automatically formatted for OData:
+
+| Ruby Type          | OData Output                       |
+|--------------------|------------------------------------|
+| `String`           | `'Seattle'` (single-quoted)        |
+| `Integer`, `Float` | `500000` (bare)                    |
+| `Time`, `DateTime` | `2026-02-04T12:00:00Z` (ISO 8601) |
+| `Date`             | `2026-02-04`                       |
+| `true` / `false`   | `true` / `false`                   |
+| `nil`              | `null`                             |
+
+#### Select, order, limit, offset
 
 ```ruby
 client.properties
+  .where(City: "Seattle")
+  .select(:ListingKey, :City, :ListPrice)   # $select
+  .order(ListPrice: :desc)                  # $orderby
+  .limit(25)                                # $top
+  .offset(50)                               # $skip
+```
+
+#### Includes (eager loading)
+
+`.includes` maps to OData `$expand` for joining related resources:
+
+```ruby
+client.properties
+  .where(City: "Seattle")
+  .includes(:Media, :OpenHouses)
+```
+
+#### Default scope and unscoped
+
+Properties automatically filter to `StandardStatus in ('Active','Pending')`:
+
+```ruby
+# Default applied
+client.properties.where(City: "Seattle")
+# → StandardStatus in ('Active','Pending') and City eq 'Seattle'
+
+# Overridden when you specify StandardStatus
+client.properties.where(StandardStatus: 'Closed')
+# → StandardStatus eq 'Closed'
+
+# Explicitly removed
+client.properties.unscoped.where(City: "Seattle")
+# → City eq 'Seattle'
+```
+
+No default scope is applied for members, offices, open_houses, or media.
+
+#### Iteration and execution
+
+Queries execute lazily — the API call fires when you access the results:
+
+```ruby
+listings = client.properties.where(City: "Seattle")
+listings.each { |l| puts l["ListPrice"] }   # triggers API call
+listings.length                               # uses cached results
+listings[0]                                   # uses cached results
+```
+
+For large datasets, `.each` and `.find_each` auto-paginate through `@odata.nextLink`:
+
+```ruby
+client.properties.where(["ModificationTimestamp > ?", 1.day.ago]).each do |listing|
+  process(listing)
+end
+
+client.properties.find_each(batch_size: 200) do |listing|
+  process(listing)
+end
+```
+
+#### Immutability
+
+Each chainable method returns a new builder, so you can safely branch queries:
+
+```ruby
+base = client.properties.where(City: "Seattle")
+active = base.where(StandardStatus: "Active")
+closed = base.where(StandardStatus: "Closed")
+# base, active, and closed are independent queries
+```
+
+---
+
+### OData Queries (Direct)
+
+The query builder above is the recommended way to query resources. You can also query resources directly using OData parameters. When called with arguments, the raw OData response hash is returned (you unwrap `value` yourself).
+
+### Listing Requests
+
+The simplest query is simply to call `properties` on the initialized client:
+
+```ruby
+client.properties(filter: "StandardStatus eq 'Active'")
 ```
 
 The API will return a JSON response with an array of listing JSON objects.
 
 ### Getting a single listing
 
-You can look up a single listing by sending a query with the listing's unique id (ListingKey). 
+You can look up a single listing by sending a query with the listing's unique id (ListingKey).
 
 ```ruby
 client.property('3yd-BINDER-5508272')

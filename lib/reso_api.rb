@@ -4,6 +4,10 @@ require "reso_api/version"
 require "reso_api/config/inflections.rb"
 require "reso_api/app/models/reso.rb"
 require "reso_api/app/models/reso/api.rb"
+require "reso_api/app/models/reso/api/query_formatter.rb"
+require "reso_api/app/models/reso/api/query_conditions.rb"
+require "reso_api/app/models/reso/api/where_chain.rb"
+require "reso_api/app/models/reso/api/query_builder.rb"
 require "reso_api/app/models/reso/api/client.rb"
 
 module ResoApi
