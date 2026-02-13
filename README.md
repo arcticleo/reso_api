@@ -373,6 +373,14 @@ For servers that support it, `$ignorenulls` omits empty keys from the response t
 client.properties(ignorenulls: true)
 ```
 
+#### $ignorecase
+
+For servers that support it, `$ignorecase` performs case-insensitive filtering. Note that this is not a standard OData parameter and may only be supported by certain providers (e.g. Constellation1).
+
+```ruby
+client.members(filter: "MemberLastName eq 'Smith'", ignorecase: true)
+```
+
 #### Automatically iterate over all results
 
 By passing a block to Media, Member, Office, and Property resource calls, subsequent paginated calls will automatically be made until the whole result set has been traversed. The block provided is executed for each returned object hash. The `batch` option can be used to return the full array of results.
