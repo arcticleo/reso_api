@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    reso_api (2.0.0)
+    reso_api (2.0.1)
       activesupport
       jwt
       oauth2
