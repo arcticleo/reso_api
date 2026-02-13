@@ -72,6 +72,14 @@ You pass these two pieces of information to create an instance of an API client:
 client = RESO::API::Client.new(access_token: access_token, base_url: base_url)
 ```
 
+#### Base URL for Replication
+
+Some systems, like Bridge Interactive, provide replication endpoints that differ from the ones for normal search requests by including an additional path segment *following* the resource segment. For example:
+
+    https://api.bridgedataoutput.com/api/v2/OData/{dataset_id}/Property/replication
+
+To accommodate this, the `base_url` parameter may contain a `/$resource$` segment which will be replaced for each API call with the appropriate resource segment.
+
 
 ### Resources
 
@@ -367,7 +375,7 @@ client.properties(ignorenulls: true)
 
 #### Automatically iterate over all results
 
-By passing a block to Media, Member, Office, and Property resource calls, subsequent paginated calls will automatically be made until the whole result set has been traversed. The block provided is executed for each returned object hash. The `batch` option can be used to return the full array of results. 
+By passing a block to Media, Member, Office, and Property resource calls, subsequent paginated calls will automatically be made until the whole result set has been traversed. The block provided is executed for each returned object hash. The `batch` option can be used to return the full array of results.
 
 Here are a couple of examples of how that can be used:
 

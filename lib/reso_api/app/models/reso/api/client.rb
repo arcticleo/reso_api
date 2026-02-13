@@ -64,8 +64,8 @@ module RESO
 
           hash = args.first.is_a?(Hash) ? args.first : {}
 
-          filter = hash[:filter].to_s
-          if !filter.include?('OriginatingSystemName') && osn.present?
+          filter = hash[:filter]
+          if !filter.to_s.include?('OriginatingSystemName') && osn.present?
             osn_filter = format("OriginatingSystemName eq '%s'", osn.to_s)
             filter = [filter.presence, osn_filter].compact.join(' and ')
           end
@@ -232,7 +232,12 @@ module RESO
       end
 
       def uri_for_endpoint endpoint
-        return URI(endpoint).host ? URI(endpoint) : URI([base_url, endpoint].join)
+        uri = URI(endpoint)
+        return uri if uri.host
+        uri = URI(base_url)
+        path = uri.path
+        uri.path = path.include?("/$resource$") ? path.sub("/$resource$", endpoint) : [path, endpoint].join
+        return uri
       end
 
       def perform_call(endpoint, params, max_retries = 5, debug = false)
@@ -275,7 +280,7 @@ module RESO
             fresh_oauth2_payload
             raise StandardError
           elsif response.is_a?(Hash) && response.has_key?("error")
-            error_msg = response.inspect
+            error_msg = "#{@last_request_url} => #{response.inspect}"
             puts "Error: #{error_msg}" if debug
             raise StandardError, error_msg
           elsif response.is_a?(Hash) && response.has_key?("retry-after")
