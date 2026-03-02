@@ -114,7 +114,7 @@ module RESO
         builder.instance_variable_set(:@count_flag, true)
         builder.instance_variable_set(:@limit_value, 1)
         response = builder.execute_raw
-        response['@odata.totalCount'].to_i
+        (response['@odata.totalCount'] || response['@odata.count']).to_i
       end
 
       def each(&block)
