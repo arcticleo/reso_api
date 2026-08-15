@@ -261,6 +261,8 @@ module RESO
           # Configure HTTP object before starting connection
           http = Net::HTTP.new(uri.host, uri.port)
           http.use_ssl = (uri.scheme == 'https')
+          http.open_timeout = 30
+          http.read_timeout = 120
 
           if http.use_ssl?
             # Configure certificate store to avoid CRL checking issues with OpenSSL 3.5+
